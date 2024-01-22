@@ -11,4 +11,5 @@
 (define product (foldl * 1 squared))
 
 ; demonstrates filter for trimming down a list to a smaller list
-(define evenNumbers (filter (lambda (number) (even? number)) numbers)) 
+(define evenNumbers (filter (lambda (number) (even? number)) numbers))
+(define evenNumber2 (filter even? numbers))
