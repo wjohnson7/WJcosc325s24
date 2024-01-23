@@ -1,0 +1,62 @@
+#lang racket
+; MEAN
+(define (mean lis)
+  (/ (foldl + 0 lis) (length lis)))
+
+; MODE
+; base case - list is empty
+(define (countAppearances atm lis)
+  (cond
+    [(empty? lis) 0]
+    [(equal? atm (car lis)) (+ 1 (countAppearances atm (cdr lis)))]
+    [else (countAppearances atm (cdr lis))]))
+
+; countAll lis1 lis2
+    ; counts how many times all the items appear in lis1 appear in lis2
+    ; lis1 is traversed recursively
+    ; lis2 will never change
+(define (countAll lis1 lis2)
+  (if (= (length lis1) 1)
+      (list (cons (car lis1) (countAppearances (car lis1) lis2)))
+      (append (list (cons (car lis1) (countAppearances (car lis1) lis2))) (countAll (cdr lis1) lis2))))
+
+(define (pairorder a b)
+  (> (cdr a) (cdr b)))
+
+(define (mode lis)
+  (let
+      [
+       (listcounts (countAll (remove-duplicates lis) lis))
+      ]
+    (car (car (sort listcounts pairorder)))))
+
+; MEDIAN
+; base case- if i is 0, return 1st item
+; otherwise decrement i and recurse on the tail of the list
+(define (memberAt i lis)
+  (if (= i 0)
+      (car lis)
+      (memberAt (- i 1) (cdr lis))))
+
+; lis must be an even length list
+; return average of middle two items
+; (define (middle2 lis) memberAt 0 lis))
+; OR
+(define (middle2 lis)
+  (let
+      [
+       (leftmid (memberAt (- (/ (length lis) 2) 1) lis))
+       (rightmid (memberAt (/ (length lis) 2) lis))
+      ]
+    (/ (+ leftmid rightmid) 2)
+  ))
+
+(define (middle1 lis)
+  (memberAt (floor (/ (length lis) 2)) lis))
+
+(define (median lis)
+  (let
+      [
+       (sortedlis (sort lis <))
+      ]
+      (if (even? (length lis)) (middle2 sortedlis) (middle1 sortedlis)))) ; helper2 adds the 2 middle items 
