@@ -6,17 +6,17 @@ import ply.lex as lex
 # -----------------------------------------------------------------------------
 
 tokens = (
-    'VAR','NUMBER',
+    'NEWLINE',
+    'NUMBER',
     'PLUS','MINUS','TIMES','DIVIDE','EQUALS',
     'LPAREN','RPAREN',
     'COMMA','SEMICOLON','LESS','GREATER',
-    'PRINT', 'INPUT', 'LET', 'GOTO', 'GOSUB', 'IF', 'REM', 'END', 'RETURN',
-    'STRING'
+    'PRINT', 'INPUT', 'LET', 'GOTO', 'GOSUB', 'IF', 'THEN', 'REM', 'END', 'RETURN', 
+    'STRING', 'VAR', 'RND', 'USR'
     )
 
 # Tokens
 
-t_VAR    = r'[A-Z]'
 t_PLUS    = r'\+'
 t_MINUS   = r'-'
 t_TIMES   = r'\*'
@@ -29,15 +29,22 @@ t_SEMICOLON = r';'
 t_LESS = r'<'
 t_GREATER = r'>'
 t_PRINT = r'PRINT|PR'
-t_INPUT = r'INPUT'
-t_LET = r'LET'
-t_GOTO = r'GOTO'
-t_GOSUB = r'GOSUB'
-t_IF = r'IF'
-t_REM = r'REM'
-t_END = r'END'
-t_RETURN = r'RETURN'
-t_STRING = r'"(^["])*"'
+t_INPUT = r'\bINPUT\b'
+t_LET = r'\bLET\b'
+t_GOTO = r'\bGOTO\b'
+t_GOSUB = r'\bGOSUB\b'
+t_IF = r'\bIF\b'
+t_THEN = r'\bTHEN\b'
+t_END = r'\bEND\b'
+t_RETURN = r'\bRETURN\b'
+t_RND = r'\bRND\b'
+t_USR = r'\bUSR\b'
+t_STRING = r'"([^"])*"'
+t_VAR    = r'[A-Z]'
+
+def t_REM(t):
+  r'REM([^\n])*'
+  return t
 
 def t_NUMBER(t):
     r'\d+'
@@ -51,26 +58,19 @@ def t_NUMBER(t):
 # Ignored characters
 t_ignore = " \t"
 
-def t_newline(t):
+def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
+    return t
 
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
 
 # Build the lexer
-lexer = lex.lex()
-sampletb = open("hexdump.tb", "r")
-#lexer.input("A=3\nB=4\nPRINT A+B")
-lexer.input(sampletb.read())
-# Tokenize
-while True:
-    tok = lexer.token()
-    if not tok: 
-        break      # No more input
-    print(tok)
-
+def build_the_lexer():
+  lexer = lex.lex()
+  return lexer
   
 
 
