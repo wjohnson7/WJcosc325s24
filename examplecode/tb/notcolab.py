@@ -104,8 +104,12 @@ def term(tok):
   factor(tok)
   tok = lexer.token()
   while tok.type == "TIMES" or tok.type == "DIVIDE":
-    factor(tok)
+    factor(lexer.token())
     tok = lexer.token()
+    if tok is None:
+      break
+    else:
+      print("uhoh")
   return tok
 
 def factor(tok):
