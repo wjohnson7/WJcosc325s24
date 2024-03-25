@@ -64,7 +64,29 @@ def function(tok):
 
 def myif(tok):
   tok = lexer.token()
-  # insert your code here
+  tok = expression(tok)
+  tok = relop(tok)
+  tok = expression(tok)
+  if tok.type != "THEN":
+    tokerror(tok,"THEN")
+  tok = lexer.token()
+  tok = statement(tok)
+  return tok
+
+def relop(tok):
+  if tok.type == "LESS":
+    tok = lexer.token()
+    if tok.type == "GREATER" or tok.type == "EQUALS":
+      tok = lexer.token() # grab the nextra token since the token we just "consumed" (i.e., checked) was part of the relop
+  elif tok.type == "GREATER":
+    tok = lexer.token()
+    if tok.type == "LESS" or tok.type == "EQUALS":
+      tok = lexer.token() # grab the nextra token since the token we just "consumed" (i.e., checked) was part of the relop
+  elif tok.type == "EQUALS":
+    tok = lexer.token() # nothing to check for here so we need to grab an extra token in order to return an "extra" token
+  else:
+    tokerror(tok, "LESS, GREATER, EQUALS")
+  return tok
 
 def gosub(tok):
   tok = lexer.token()
@@ -129,7 +151,7 @@ def factor(tok):
       tokerror(tok, "RPAREN")
 
 # now, open a program and parse it
-thesourcecode = open("printsonly.tb", "r")
+thesourcecode = open("ifsonly.tb", "r")
 #lexer.input("A=3\nB=4\nPRINT A+B")
 lexer.input(thesourcecode.read())
 program(lexer.token())
