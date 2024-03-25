@@ -5,19 +5,26 @@ lexer = build_the_lexer()
 # define all the non terminal parsing functions
 def tokerror(tok, exp):
   print(f"Unexpected token found: {tok.type}, Expecting: {exp}")
+  print("INVALID")
+  exit(1)
 
 def program(tok):
   actual_statement(tok)
   tok = lexer.token()
-  while tok != None:
+  while tok is not None:
     actual_statement(tok)
     tok = lexer.token()
+  print("VALID")
 
 def actual_statement(tok):
   if tok.type != "NUMBER":
     tokerror(tok, "NUMBER")
   tok = statement(lexer.token())
-  if tok.type != "NEWLINE":
+  if tok is None:
+    print("EOF wihthout a newline character at the end")
+    print("INVALID")
+    exit(1)
+  elif tok.type != "NEWLINE":
     tokerror(tok, "NEWLINE")
 
 def statement(tok):
@@ -86,7 +93,7 @@ def expr_list(tok):
     tok = expression(tok)
   else:
     tok = lexer.token()
-  while tok.type == "COMMA" or tok.type == "SEMICOLON":
+  while tok is not None and (tok.type == "COMMA" or tok.type == "SEMICOLON"):
     tok = expression(lexer.token())
   return tok
 
@@ -96,7 +103,7 @@ def expression(tok):
   if tok.type == "PLUS" or tok.type == "MINUS":
     tok = lexer.token()
   tok = term(tok)
-  while tok.type == "PLUS" or tok.type == "MINUS":
+  while tok is not None and (tok.type == "PLUS" or tok.type == "MINUS"):
     tok = term(lexer.token())
   return tok
 
@@ -106,7 +113,7 @@ def term(tok):
   while tok.type == "TIMES" or tok.type == "DIVIDE":
     factor(lexer.token())
     tok = lexer.token()
-    if tok is None:
+    if tok is None or tok.type == "NEWLINE":
       break
     else:
       print("uhoh")
