@@ -43,8 +43,7 @@ def statement(tok):
     gosub(tok)
     tok = lexer.token()
   elif tok.type == "IF":
-    myif(tok)
-    tok = lexer.token()
+    tok = myif(tok)
   elif tok.type == "END":
     tok = lexer.token()
   elif tok.type == "RETURN":
