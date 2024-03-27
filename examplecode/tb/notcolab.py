@@ -1,5 +1,7 @@
 # PART 2 solution - recursive descent top-down parser by hand
 from lexicalanalysis import build_the_lexer
+from statements import *
+
 lexer = build_the_lexer()
 
 # define all the non terminal parsing functions
@@ -14,12 +16,14 @@ def program(tok):
   while tok is not None:
     actual_statement(tok)
     tok = lexer.token()
+  print(len(statements))
   print("VALID")
 
 def actual_statement(tok):
   if tok.type != "NUMBER":
     tokerror(tok, "NUMBER")
-  tok = statement(lexer.token())
+  linenum = tok.value
+  tok = statement(lexer.token(), linenum)
   if tok is None:
     print("EOF wihthout a newline character at the end")
     print("INVALID")
@@ -27,21 +31,21 @@ def actual_statement(tok):
   elif tok.type != "NEWLINE":
     tokerror(tok, "NEWLINE")
 
-def statement(tok):
+# note for all of these different types of statements
+# we are creating a global stmt variable that can be referenced whenever we need it 
+def statement(tok, linenum):
   # look for a statement
   if tok.type == "PRINT":
+    stmt = PrintStatement(linenum)
     tok = myprint(tok)
   elif tok.type == "INPUT":
     tok = myinput(tok)
   elif tok.type == "LET":
-    let(tok)
-    tok = lexer.token()
+    tok = let(tok)
   elif tok.type == "GOTO":
-    goto(tok)
-    tok = lexer.token()
+    tok = goto(tok)
   elif tok.type == "GOSUB":
-    gosub(tok)
-    tok = lexer.token()
+    tok = gosub(tok)
   elif tok.type == "IF":
     tok = myif(tok)
   elif tok.type == "END":
@@ -55,6 +59,7 @@ def statement(tok):
     tok = lexer.token()
   else:
     tokerror(tok, "PRINT, INPUT, RETURN, END, ...")
+  statements.append(stmt)
   return tok
 
 def function(tok):
@@ -88,20 +93,20 @@ def relop(tok):
   return tok
 
 def gosub(tok):
-  tok = lexer.token()
-  # insert your code here
+  tok = expression(lexer.token())
+  return tok
 
 def goto(tok):
-  tok = lexer.token()
-  # insert your code here
+  tok = expression(lexer.token())
+  return tok
 
 def let(tok):
   tok = lexer.token()
   # insert your code here
 
 def myinput(tok):
-  tok = lexer.token()
-  # insert your code here
+  tok = var_list(lexer.token())
+  return tok
 
 def myprint(tok):
   # no need to check for print token itself again, as that's the only way this function ends up being called
@@ -116,6 +121,17 @@ def expr_list(tok):
     tok = lexer.token()
   while tok is not None and (tok.type == "COMMA" or tok.type == "SEMICOLON"):
     tok = expression(lexer.token())
+  return tok
+
+def var_list(tok):
+  # look for a var first and ERROR out if we don't have a var
+  if tok.type != "VAR":
+    tokerror(tok, 'VAR')
+  tok = lexer.token()
+  while tok is not None and tok.type == "COMMA":
+    tok = lexer.token()
+    if tok.type != "VAR":
+      tokerror(tok, 'VAR')
   return tok
 
 # note that expression MUST make an extra call to lex before it finishes
@@ -150,7 +166,8 @@ def factor(tok):
       tokerror(tok, "RPAREN")
 
 # now, open a program and parse it
-thesourcecode = open("ifsonly.tb", "r")
+thesourcecode = open("printsonly.tb", "r")
 #lexer.input("A=3\nB=4\nPRINT A+B")
 lexer.input(thesourcecode.read())
+statements = []
 program(lexer.token())
