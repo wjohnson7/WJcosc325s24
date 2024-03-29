@@ -36,37 +36,41 @@ def actual_statement(tok):
 def statement(tok, linenum):
   # look for a statement
   if tok.type == "PRINT":
-    stmt = PrintStatement(linenum)
+    statements.append(PrintStatement(linenum))
     tok = myprint(tok)
   elif tok.type == "INPUT":
+    statements.append(InputStatement(linenum))
     tok = myinput(tok)
   elif tok.type == "LET":
+    statements.append(LetStatement(linenum))
     tok = let(tok)
   elif tok.type == "GOTO":
     tok = goto(tok)
   elif tok.type == "GOSUB":
     tok = gosub(tok)
   elif tok.type == "IF":
-    tok = myif(tok)
+    statements.append(IfStatement(linenum))
+    tok = myif(tok, linenum)
   elif tok.type == "END":
     tok = lexer.token()
   elif tok.type == "RETURN":
     tok = lexer.token()
-  elif tok.type == "RND" or tok.type == "USR":
-    function(tok)
-    tok = lexer.token()
   elif tok.type == "REM":
+    statements.append(RemStatement(linenum))
     tok = lexer.token()
   else:
     tokerror(tok, "PRINT, INPUT, RETURN, END, ...")
-  statements.append(stmt)
   return tok
 
 def function(tok):
   tok = lexer.token()
-  # insert your code here
+  if tok.type != "LPAREN":
+    tokerror(tok, "(")
+  tok = expr_list(lexer.token())
+  if tok.type != "RPAREN":
+    tokerror(tok, ")")
 
-def myif(tok):
+def myif(tok, linenum):
   tok = lexer.token()
   tok = expression(tok)
   tok = relop(tok)
@@ -74,7 +78,7 @@ def myif(tok):
   if tok.type != "THEN":
     tokerror(tok,"THEN")
   tok = lexer.token()
-  tok = statement(tok)
+  tok = statement(tok, linenum)
   return tok
 
 def relop(tok):
@@ -157,8 +161,10 @@ def term(tok):
   return tok
 
 def factor(tok):
-  if tok.type != "VAR" and tok.type != "NUMBER" and tok.type != "LPAREN":
-    tokerror(tok, "VAR, NUMBER, LPAREN")
+  if tok.type != "RND" and tok.type != "USR" and tok.type != "VAR" and tok.type != "NUMBER" and tok.type != "LPAREN":
+    tokerror(tok, "RND, USR, VAR, NUMBER, LPAREN")
+  if tok.type == "RND" or tok.type == "USR":
+    function(tok)
   if tok.type == "LPAREN":
     tok = lexer.token()
     tok = expression(tok)
@@ -166,8 +172,13 @@ def factor(tok):
       tokerror(tok, "RPAREN")
 
 # now, open a program and parse it
-thesourcecode = open("printsonly.tb", "r")
+thesourcecode = open("random.tb", "r")
 #lexer.input("A=3\nB=4\nPRINT A+B")
 lexer.input(thesourcecode.read())
 statements = []
 program(lexer.token())
+
+# by this point, statements should be fully populated
+for stmt in statements:
+  print(f"Executing {stmt} at line # {stmt._linenumber}")
+  stmt.execute()
