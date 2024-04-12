@@ -1,3 +1,7 @@
+import math
+
+symbol_table = {}
+
 class ASTNode:
     def execute(self):
         raise NotImplementedError("Execute method must be implemented by subclasses.")
@@ -8,7 +12,7 @@ class PrintStatement(ASTNode):
 
     def execute(self):
         # Execution logic to evaluate expressions and print them
-        output = ' '.join(str(expr.evaluate()) for expr in self.expressions)
+        output = ' '.join(str(expr) for expr in self.expressions.evaluate())
         print(output)
 
 class IfStatement(ASTNode):
@@ -19,15 +23,35 @@ class IfStatement(ASTNode):
         self.statement = statement
 
     def execute(self):
-        # Evaluate condition
-        if self.operator.evaluate(self.left_expr, self.right_expr):
-            self.statement.execute()
+        # Evaluate condition ... demorgan to the extreme
+        if self.operator == "=":
+            if self.left_expr.evaluate() != self.right_expr.evaluate():
+                return
+        elif self.operator == "<":
+            if self.left_expr.evaluate() >= self.right_expr.evaluate():
+                return
+        elif self.operator == ">":
+            if self.left_expr.evaluate() <= self.right_expr.evaluate():
+                return
+        elif self.operator == ">=":
+            if self.left_expr.evaluate() < self.right_expr.evaluate():
+                return
+        elif self.operator == "<=":
+            if self.left_expr.evaluate() > self.right_expr.evaluate():
+                return
+        elif self.operator == "<>":
+            if self.left_expr.evaluate() == self.right_expr.evaluate():
+                return
+        else:
+            raise ValueError(f"Invalid operator: {self.operator}")  
+        self.statement.execute()
 
 class GotoStatement(ASTNode):
     def __init__(self, line_number):
         self.line_number = line_number
 
     def execute(self):
+        global control_flow
         # Logic to jump to another line in the program (handled by control flow manager)
         control_flow.jump(self.line_number.evaluate())
 
@@ -46,7 +70,8 @@ class LetStatement(ASTNode):
 
     def execute(self):
         # Evaluate expression and assign to variable
-        self.variable.set_value(self.expression.evaluate())
+        global symbol_table
+        symbol_table[self.variable] = self.expression.evaluate()
 
 class GosubStatement(ASTNode):
     def __init__(self, line_number):
@@ -66,11 +91,13 @@ class RemStatement(ASTNode):
 
 class ReturnStatement(ASTNode):
     def execute(self):
+        global control_flow
         # Logic to return from a subroutine (handled by control flow manager)
         control_flow.return_from_subroutine()
 
 class EndStatement(ASTNode):
     def execute(self):
+        global control_flow
         # Logic to end the program execution
         control_flow.end_program()
 
@@ -79,7 +106,7 @@ class ExpressionList(ASTNode):
         self.expressions = expressions  # List of Expression or String
 
     def evaluate(self):
-        return [expr.evaluate() for expr in self.expressions]
+        return [expr.evaluate() if not isinstance(expr, str) else expr for expr in self.expressions]
 
 class VarList(ASTNode):
     def __init__(self, variables):
@@ -103,6 +130,34 @@ class Expression(ASTNode):
                 result -= term.evaluate()
         return result
 
+class UnaryExpression:
+    def __init__(self, operand, operator):
+        """
+        Initialize a UnaryExpression.
+
+        :param operand: The operand (expression) to which the unary operator is applied.
+        :param operator: A string representing the unary operator ('+' or '-').
+        """
+        self.operand = operand
+        self.operator = operator
+
+    def evaluate(self):
+        """
+        Evaluate the unary expression based on the operator and operand.
+
+        Returns the result of applying the unary operator to the operand.
+        """
+        if self.operator == '+':
+            return +self.operand.evaluate()  # Unary plus (generally redundant)
+        elif self.operator == '-':
+            return -self.operand.evaluate()  # Unary minus (negation)
+
+    def __str__(self):
+        """
+        Return a string representation of the unary expression for debugging.
+        """
+        return f"{self.operator}{self.operand}"
+
 class Term(ASTNode):
     def __init__(self, factors, operators):
         self.factors = factors  # List of Factor instances
@@ -117,12 +172,21 @@ class Term(ASTNode):
                 result /= factor.evaluate()
         return result
 
+def is_numeric(value):
+    return isinstance(value, (int, float, complex))
+
 class Factor(ASTNode):
     def __init__(self, value):
         self.value = value  # Can be Var, Number, Expression, or FunctionCall
 
     def evaluate(self):
-        return self.value.evaluate()
+        global symbol_table
+        if is_numeric(self.value):
+            return self.value
+        elif len(self.value) == 1:
+            return symbol_table[self.value] if self.value in symbol_table else 0
+        else:
+            return self.value.evaluate()
 
 class FunctionCall(ASTNode):
     def __init__(self, function_name, args):
@@ -131,7 +195,7 @@ class FunctionCall(ASTNode):
 
     def evaluate(self):
         if self.function_name == 'RND':
-            return random.choice(self.args.evaluate())
+            return math.random.choice(self.args.evaluate())
         elif self.function_name == 'USR':
             # Implementation depends on what USR is supposed to do
             pass
