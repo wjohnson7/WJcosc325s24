@@ -1,5 +1,6 @@
 import math
 
+# symbol table for all the vars
 symbol_table = {}
 
 class ASTNode:

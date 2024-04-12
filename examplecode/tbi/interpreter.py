@@ -73,14 +73,6 @@ def tokerror(tok, exp):
   print("INVALID")
   exit(1)
 
-# store all the statements so we can support GOTO and GOSUB
-statements = []
-
-# list of return line numbers
-returnstack = []
-
-# symbol table for all the vars
-symboltable = {}
 
 def p_program(p):
     '''program : actual_statement
