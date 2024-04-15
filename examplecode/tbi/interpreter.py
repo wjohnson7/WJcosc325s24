@@ -87,7 +87,7 @@ def p_actual_statement(p):
     p[0] = (p[1], p[2])  # Tuple of line number and the statement
 
 def p_statement(p):
-    '''statement : print_statement
+    '''statement : print_statement 
                  | input_statement
                  | if_statement
                  | goto_statement

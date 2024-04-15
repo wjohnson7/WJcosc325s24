@@ -42,12 +42,12 @@ class ControlFlow:
         """ Saves the next line and jumps to the subroutine at line_number. """
         self.call_stack.append(self.sorted_lines[self.current_index + 1])  # Save the next line
         self.current_line = line_number
-        self.current_index = self.sorted_lines.index(line_number)  # Update the index
+        self.current_index = self.sorted_lines.index(line_number)-1  # Update the index
 
     def return_from_subroutine(self):
         """ Return from a subroutine by popping the return address from the stack. """
         self.current_line = self.call_stack.pop()
-        self.current_index = self.sorted_lines.index(self.current_line)  # Update the index to match the current line
+        self.current_index = self.sorted_lines.index(self.current_line)-1  # Update the index to match the current line
 
     def end_program(self):
         """ Set the program to end. """
