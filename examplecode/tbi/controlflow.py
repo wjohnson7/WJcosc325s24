@@ -34,6 +34,10 @@ class ControlFlow:
         else:
             self.end_program()  # End the program if there are no more lines
 
+    def jump(self, line_number):
+        self.current_line = line_number
+        self.current_index = self.sorted_lines.index(line_number)-1  # Update the index
+
     def call_subroutine(self, line_number):
         """ Saves the next line and jumps to the subroutine at line_number. """
         self.call_stack.append(self.sorted_lines[self.current_index + 1])  # Save the next line

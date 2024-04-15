@@ -40,7 +40,7 @@ t_RND = r'\bRND\b'
 t_USR = r'\bUSR\b'
 t_STRING = r'"([^"])*"'
 t_VAR    = r'[A-Z]'
-t_RELOP = r'=|<>|<=|>=|<|>'
+t_RELOP = r'<>|<=|>=|<|>'
 
 def t_REM(t):
   r'REM([^\n])*'
@@ -107,7 +107,8 @@ def p_input_statement(p):
     p[0] = myast.InputStatement(p[2])
 
 def p_if_statement(p):
-    'if_statement : IF expression RELOP expression THEN statement'
+    '''if_statement : IF expression RELOP expression THEN statement
+                    | IF expression EQUALS expression THEN statement'''
     p[0] = myast.IfStatement(p[2], p[3], p[4], p[6])
 
 def p_goto_statement(p):
@@ -190,7 +191,7 @@ def p_factor(p):
     elif len(p) == 3:
         # Handle unary operators, assuming you want to transform their effects into the AST structure
         if p[1] == '+':
-            p[0] = myast.Factor(p[2])  # Unary plus (could be redundant, depends on AST structure)
+            p[0] = p[2]  # Unary plus (could be redundant, depends on AST structure)
         elif p[1] == '-':
             # Unary minus needs to negate the factor
             p[0] = myast.UnaryExpression(p[2], operator='-')
@@ -212,16 +213,10 @@ def p_error(p):
 
 import ply.lex as lex
 lexer = lex.lex()
-thesourcecode = open("examplecode/tbi/printsonly.tb", "r")
+thesourcecode = open("examplecode/tbi/hexdump.tb", "r")
 import ply.yacc as yacc 
 parser = yacc.yacc()
 program = parser.parse(thesourcecode.read())
 print(program)
 
-
-# setup the control flow class
-import controlflow
-
-control_flow = controlflow.ControlFlow()
-control_flow.load_program(program)
-control_flow.run_program()
+myast.run_program(program)
