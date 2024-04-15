@@ -205,7 +205,7 @@ class FunctionCall(ASTNode):
             return random.randint(0, self.args.evaluate()[0])
         elif self.function_name == 'USR':
             # Implementation depends on what USR is supposed to do
-            pass
+            return 0
 
 def run_program(program):
     control_flow.load_program(program)
