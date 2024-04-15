@@ -1,4 +1,8 @@
-import math
+import random
+import controlflow
+
+# control execution including support for GOTO, GOSUB
+control_flow = controlflow.ControlFlow()
 
 # symbol table for all the vars
 symbol_table = {}
@@ -13,8 +17,8 @@ class PrintStatement(ASTNode):
 
     def execute(self):
         # Execution logic to evaluate expressions and print them
-        output = ' '.join(str(expr) for expr in self.expressions.evaluate())
-        print(output)
+        for expr in self.expressions.evaluate():
+            print(expr)
 
 class IfStatement(ASTNode):
     def __init__(self, left_expr, operator, right_expr, statement):
@@ -57,12 +61,13 @@ class GotoStatement(ASTNode):
         control_flow.jump(self.line_number.evaluate())
 
 class InputStatement(ASTNode):
-    def __init__(self, variables):
-        self.variables = variables  # List of variables to input
+    def __init__(self, varlist):
+        self.varlist = varlist  # List of variables to input
 
     def execute(self):
-        for var in self.variables:
-            var.set_value(input(f"Enter value for {var.name}: "))
+        global symbol_table
+        for var in self.varlist.variables:
+            symbol_table[var] = input(f"Enter value for {var}: ")
 
 class LetStatement(ASTNode):
     def __init__(self, variable, expression):
@@ -79,6 +84,7 @@ class GosubStatement(ASTNode):
         self.line_number = line_number
 
     def execute(self):
+        global control_flow
         # Similar to GOTO but needs to remember return address
         control_flow.call_subroutine(self.line_number.evaluate())
 
@@ -184,7 +190,7 @@ class Factor(ASTNode):
         global symbol_table
         if is_numeric(self.value):
             return self.value
-        elif len(self.value) == 1:
+        elif isinstance(self.value, str):
             return symbol_table[self.value] if self.value in symbol_table else 0
         else:
             return self.value.evaluate()
@@ -196,7 +202,11 @@ class FunctionCall(ASTNode):
 
     def evaluate(self):
         if self.function_name == 'RND':
-            return math.random.choice(self.args.evaluate())
+            return random.randint(0, self.args.evaluate()[0])
         elif self.function_name == 'USR':
             # Implementation depends on what USR is supposed to do
             pass
+
+def run_program(program):
+    control_flow.load_program(program)
+    control_flow.run_program()
