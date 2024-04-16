@@ -67,7 +67,7 @@ class InputStatement(ASTNode):
     def execute(self):
         global symbol_table
         for var in self.varlist.variables:
-            symbol_table[var] = input(f"Enter value for {var}: ")
+            symbol_table[var] = int(input(f"Enter value for {var}: "))
 
 class LetStatement(ASTNode):
     def __init__(self, variable, expression):
