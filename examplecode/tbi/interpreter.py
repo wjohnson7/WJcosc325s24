@@ -213,10 +213,11 @@ def p_error(p):
 
 import ply.lex as lex
 lexer = lex.lex()
-thesourcecode = open("examplecode/tbi/hexdump.tb", "r")
+thesourcecode = open("examplecode/tbi/random.tb", "r")
 import ply.yacc as yacc 
 parser = yacc.yacc()
 program = parser.parse(thesourcecode.read())
-print(program)
+for tuple in program:
+    print(tuple)
 
 myast.run_program(program)
